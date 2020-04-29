@@ -1,15 +1,20 @@
 package com.example.mywechat;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.OrientationHelper;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -23,8 +28,12 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private Fragment mTab03=new ContactFragment();
     private Fragment mTab04=new SettingFragment();
 
-    private  TextView title;
+    private TextView title;
     private RecyclerView detail;
+    private RecyclerView recyclerView;
+    private MyAdapter myAdapter;
+    private List<UserAccount>userAccounts;
+
     FragmentManager fm;
 
     private LinearLayout mTabWeixin;
@@ -36,6 +45,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private ImageButton mImgFrd;
     private ImageButton mImgAddress;
     private ImageButton mImgSettings;
+    private ImageButton add;
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -48,6 +58,14 @@ public class MainActivity extends Activity implements View.OnClickListener {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_main);
 
+        userAccounts=new ArrayList<>();
+        myAdapter=new MyAdapter(this,userAccounts);
+        recyclerView=findViewById(R.id.recycleview);
+        LinearLayoutManager linearLayoutManager=new LinearLayoutManager(this);
+        linearLayoutManager.setOrientation(OrientationHelper.VERTICAL);
+        recyclerView.setLayoutManager(linearLayoutManager);
+        recyclerView.setAdapter(myAdapter);
+
         initView();
         initFragment();
         selectfragment(0);
@@ -55,13 +73,32 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
         initList();
         initData();
+
+        add.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                View view1= LayoutInflater.from(MainActivity.this).inflate(R.layout.dialogview,null,false);
+                final EditText edusername=view1.findViewById(R.id.ed_username);
+                final EditText edpassword=view1.findViewById(R.id.ed_password);
+
+                new AlertDialog.Builder(MainActivity.this)
+                        .setTitle("用户信息输入")
+                        .setView(view1)
+                        .setPositiveButton("添加", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                UserAccount userAccount=new UserAccount();
+                                userAccount.setUsername(edusername.getText().toString().trim());
+                                userAccount.setPassword(edpassword.getText().toString().trim());
+                                userAccounts.add(userAccount);
+                                myAdapter.notifyDataSetChanged();
+                            }
+                        }).setNegativeButton("取消",null).show();
+            }
+        });
     }
 
     private void initList() {
-        mList.add("2015年|回归中国发展");
-        mList.add("2015年|成立个人工作室");
-        mList.add("2015年|参加极限挑战第一季");
-
         mList.add("2016年|参加极限挑战第二季");
         mList.add("2016年|参演电视剧好先生");
         mList.add("2016年|参演电视剧老九门及番外");
@@ -209,6 +246,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
         mImgFrd=(ImageButton)findViewById(R.id.image_friend);
         mImgAddress=(ImageButton)findViewById(R.id.image_contact);
         mImgSettings=(ImageButton)findViewById(R.id.image_settings);
+        add=(ImageButton)findViewById(R.id.add);
 
         title=(TextView)findViewById(R.id.tv_sticky_header_view);
         detail=(RecyclerView)findViewById(R.id.rcv_sticky);
@@ -309,25 +347,30 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 selectfragment(0);
                 title.setVisibility(View.GONE);
                 detail.setVisibility(View.GONE);
+                recyclerView.setVisibility(View.GONE);
                 break;
             case R.id.id_tab_friend:
                 selectfragment(1);
                 title.setVisibility(View.VISIBLE);
                 detail.setVisibility(View.VISIBLE);
+                recyclerView.setVisibility(View.GONE);
                 break;
             case R.id.id_tab_contact:
                 selectfragment(2);
                 title.setVisibility(View.GONE);
                 detail.setVisibility(View.GONE);
+                recyclerView.setVisibility(View.VISIBLE);
                 break;
             case R.id.id_tab_settings:
                 selectfragment(3);
                 title.setVisibility(View.GONE);
                 detail.setVisibility(View.GONE);
+                recyclerView.setVisibility(View.GONE);
                 break;
             default:
                 title.setVisibility(View.GONE);
                 detail.setVisibility(View.GONE);
+                recyclerView.setVisibility(View.GONE);
                 break;
         }
     }
